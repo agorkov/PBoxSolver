@@ -4,12 +4,11 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls;
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
 
 type
   TForm1 = class(TForm)
     btnLoadMap: TButton;
-    img1: TImage;
     procedure btnLoadMapClick(Sender: TObject);
   private
     { Private declarations }
@@ -32,7 +31,6 @@ var
 begin
   map := TCMap.Create;
   map.LoadMapFromFile('map.txt');
-  img1.Picture.Assign(map.DrawMap);
 end;
 
 end.

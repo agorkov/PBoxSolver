@@ -2,6 +2,9 @@ unit UGlobalTypes;
 
 interface
 
+uses
+  Vcl.Graphics;
+
 type
   TECellType = (ctEmpty, ctAinable, ctWall, ctBox, ctBoxPlace, ctHome);
 
@@ -11,9 +14,13 @@ type
     map: array of array of set of TECellType;
   public
     procedure LoadMapFromFile(FileName: string);
+    function DrawMap: TBitmap;
   end;
 
 implementation
+
+uses
+  UColorImages;
 
 procedure TCMap.LoadMapFromFile(FileName: string);
 var
@@ -47,10 +54,26 @@ begin
       'B':
         map[I, j] := map[I, j] + [ctBox];
       'P':
-        map[I, j] := map[I, j] + [ctPlace];
+        map[I, j] := map[I, j] + [ctBoxPlace];
     end;
   end;
   CloseFile(f);
+end;
+
+function TCMap.DrawMap: TBitmap;
+var
+  CI: UcolorImages.TCColorImage;
+  i: Integer;
+  j: Integer;
+begin
+  CI := TCColorImage.Create;
+  CI.Height := mapH;
+  CI.Width := mapW;
+  for i := 1 to mapH do
+    for j := 1 to mapW do
+      if ctWall in map[i, j] then
+        CI.Pixels[i, j].FullColor := clBlack;
+  DrawMap := CI.SaveToBitMap;
 end;
 
 end.

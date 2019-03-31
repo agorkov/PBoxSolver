@@ -6,7 +6,7 @@ uses
   Vcl.Graphics;
 
 type
-  TECellType = (ctWall, ctEmpty, ctAinable, ctBox, ctBoxPlace, ctHome);
+  TECellType = (ctEmpty, ctAinable, ctWall, ctBox, ctBoxPlace, ctHome);
 
   TCMap = class
   private
@@ -14,7 +14,6 @@ type
     map: array of array of set of TECellType;
   public
     procedure LoadMapFromFile(FileName: string);
-    procedure CalculateMap;
     function DrawMap: TBitmap;
   end;
 
@@ -33,16 +32,13 @@ begin
   AssignFile(f, FileName);
   Reset(f);
   Read(f, Self.mapH);
-  SetLength(self.map, Self.mapH + 2);
+  SetLength(self.map, Self.mapH + 1);
   Readln(f, Self.mapW);
-  for I := 0 to Self.mapH + 1 do
-    SetLength(Self.map[I], Self.mapW + 2);
-  for I := 0 to Self.mapH + 1 do
-    for j := 0 to Self.mapW + 1 do
-      if (I < 1) or (I > mapH) or (j < 1) or (j > mapW) then
-        self.map[I, j] := [ctWall]
-      else
-        self.map[I, j] := [ctEmpty];
+  for I := 1 to Self.mapH do
+    SetLength(Self.map[I], Self.mapW + 1);
+  for I := 1 to Self.mapH do
+    for j := 1 to Self.mapW do
+      self.map[I, j] := [ctEmpty];
   while not Eof(f) do
   begin
     read(f, I);
@@ -63,46 +59,6 @@ begin
     end;
   end;
   CloseFile(f);
-  Self.CalculateMap;
-end;
-
-procedure TCMap.CalculateMap;
-var
-  fl: Boolean;
-  i: Integer;
-  j: Integer;
-begin
-  fl := true;
-  while fl do
-  begin
-    fl := False;
-    for i := 1 to mapH do
-      for j := 1 to mapW do
-        if ctAinable in map[i, j] then
-        begin
-          if (not (ctWall in map[i - 1, j])) and (not (ctBox in map[i - 1, j])) and (not (ctAinable in map[i - 1, j])) then
-          begin
-            map[i - 1, j] := map[i - 1, j] + [ctAinable];
-            fl := True;
-          end;
-          if (not (ctWall in map[i + 1, j])) and (not (ctBox in map[i + 1, j])) and (not (ctAinable in map[i + 1, j])) then
-          begin
-            map[i + 1, j] := map[i + 1, j] + [ctAinable];
-            fl := True;
-          end;
-          if (not (ctWall in map[i, j - 1])) and (not (ctBox in map[i, j - 1])) and (not (ctAinable in map[i, j - 1])) then
-          begin
-            map[i, j - 1] := map[i, j - 1] + [ctAinable];
-            fl := True;
-          end;
-          if (not (ctWall in map[i, j + 1])) and (not (ctBox in map[i, j + 1])) and (not (ctAinable in map[i, j + 1])) then
-          begin
-            map[i, j + 1] := map[i, j + 1] + [ctAinable];
-            fl := True;
-          end;
-        end;
-  end;
-
 end;
 
 function TCMap.DrawMap: TBitmap;
