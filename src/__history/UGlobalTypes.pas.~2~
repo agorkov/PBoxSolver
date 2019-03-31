@@ -1,0 +1,11 @@
+unit UGlobalTypes;
+
+interface
+
+type
+  TECellType = (ctUnattainable, ctAinable, ctBox, ctBoxPlace);
+
+implementation
+
+end.
+

@@ -9,7 +9,6 @@ uses
 type
   TForm1 = class(TForm)
     btnLoadMap: TButton;
-    procedure btnLoadMapClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -22,16 +21,6 @@ var
 implementation
 
 {$R *.dfm}
-uses
-  UGlobalTypes;
-
-procedure TForm1.btnLoadMapClick(Sender: TObject);
-var
-  map: UGlobalTypes.TCMap;
-begin
-  map := TCMap.Create;
-  map.LoadMapFromFile('map.txt');
-end;
 
 end.
 

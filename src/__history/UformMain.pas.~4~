@@ -27,9 +27,9 @@ uses
 
 procedure TForm1.btnLoadMapClick(Sender: TObject);
 var
-  map: UGlobalTypes.TCMap;
+  map: UGlobalTypes.TRMap;
 begin
-  map := TCMap.Create;
+  map := TRMap.Create;
   map.LoadMapFromFile('map.txt');
 end;
 

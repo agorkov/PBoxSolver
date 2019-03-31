@@ -1,0 +1,38 @@
+unit UGlobalTypes;
+
+interface
+
+type
+  TECellType = (ctUnattainable, ctAinable, ctWall, ctBox, ctBoxPlace, ctHome);
+
+  TCMap = class
+  private
+    mapH, mapW: integer;
+    map: array of array of set of TECellType;
+  public
+    procedure LoadMapFromFile(FileName: string);
+  end;
+
+implementation
+
+procedure TCMap.LoadMapFromFile(FileName: string);
+var
+  f: TextFile;
+  I: Integer;
+  j: Integer;
+begin
+  AssignFile(f, FileName);
+  Reset(f);
+  Read(f, Self.mapH);
+  SetLength(self.map, Self.mapH + 1);
+  Readln(f, Self.mapW);
+  for I := 1 to Self.mapH do
+    SetLength(Self.map[I], Self.mapW + 1);
+  for I := 1 to Self.mapH do
+    for j := 1 to Self.mapW do
+      self.map[I, j] := [ctUnattainable];
+  CloseFile(f);
+end;
+
+end.
+
