@@ -239,7 +239,7 @@ begin
     fl := True;
     for i := 1 to Self.p[q].Map.mapH do
       for j := 1 to Self.p[q].Map.mapW do
-        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
+        if Map[i, j] <> Self.p[q].Map[i, j] then
           fl := False;
     if fl then
       NeedAdd := False;

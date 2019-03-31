@@ -29,13 +29,10 @@ uses
 procedure TForm1.btnLoadMapClick(Sender: TObject);
 var
   map: UGlobalTypes.TCMap;
-  l: TCList;
 begin
   map := TCMap.Create;
-  map.LoadMapFromFile('map.txt');
+  map.LoadMapFromFile('map_test.txt');
   img1.Picture.Assign(map.DrawMap);
-  l := TCList.Create;
-  l.AddMap(0, map);
 end;
 
 end.

@@ -227,23 +227,10 @@ end;
 procedure TCList.AddMap(Prev: Integer; Map: TCMap);
 var
   NeedAdd: Boolean;
-  fl: Boolean;
-  q: Integer;
-  i: Integer;
-  j: Integer;
 begin
-  NeedAdd := true;
-
-  for q := 1 to count do
-  begin
-    fl := True;
-    for i := 1 to Self.p[q].Map.mapH do
-      for j := 1 to Self.p[q].Map.mapW do
-        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
-          fl := False;
-    if fl then
-      NeedAdd := False;
-  end;
+  NeedAdd := false;
+  if Prev = 0 then
+    NeedAdd := True;
 
   if NeedAdd then
   begin

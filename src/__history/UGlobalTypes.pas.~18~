@@ -8,6 +8,10 @@ uses
 type
   TECellType = (ctWall, ctEmpty, ctAinable, ctBox, ctBoxPlace, ctHome);
 
+  TRStep = record
+    FromI, FormJ, ToI, ToJ: integer;
+  end;
+
   TCMap = class
   private
     mapH, mapW: integer;
@@ -35,11 +39,14 @@ begin
   Read(f, Self.mapH);
   SetLength(self.map, Self.mapH + 2);
   Readln(f, Self.mapW);
-  for I := 1 to Self.mapH do
+  for I := 0 to Self.mapH + 1 do
     SetLength(Self.map[I], Self.mapW + 2);
-  for I := 1 to Self.mapH do
-    for j := 1 to Self.mapW do
-      self.map[I, j] := [ctEmpty];
+  for I := 0 to Self.mapH + 1 do
+    for j := 0 to Self.mapW + 1 do
+      if (I < 1) or (I > mapH) or (j < 1) or (j > mapW) then
+        self.map[I, j] := [ctWall]
+      else
+        self.map[I, j] := [ctEmpty];
   while not Eof(f) do
   begin
     read(f, I);
@@ -60,6 +67,7 @@ begin
     end;
   end;
   CloseFile(f);
+  Self.CalculateMap;
 end;
 
 procedure TCMap.CalculateMap;
@@ -118,10 +126,10 @@ begin
         CI.Pixels[i - 1, j - 1].FullColor := clWebBrown
       else if ctBoxPlace in map[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clWebSandyBrown
-      else if ctAinable in map[i, j] then
-        CI.Pixels[i - 1, j - 1].FullColor := clGreen
       else if ctHome in map[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clRed
+      else if ctAinable in map[i, j] then
+        CI.Pixels[i - 1, j - 1].FullColor := clGreen
       else
         CI.Pixels[i - 1, j - 1].FullColor := clWhite;
   DrawMap := CI.SaveToBitMap;

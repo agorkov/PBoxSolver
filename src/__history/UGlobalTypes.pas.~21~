@@ -26,18 +26,6 @@ type
     function MakeMove(Move: TRMove): TCMap;
   end;
 
-  TRPosition = record
-    PrevInd: Integer;
-    Map: TCMap;
-  end;
-
-  TCList = class
-    Count: integer;
-    p: array of TRPosition;
-  public
-    procedure AddMap(Prev: Integer; Map: TCMap);
-  end;
-
 implementation
 
 uses
@@ -222,37 +210,6 @@ begin
   nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] - [ctBox];
   nm.map[Move.ToI, Move.ToJ] := nm.map[Move.ToI, Move.ToJ] + [ctBox];
   MakeMove := nm;
-end;
-
-procedure TCList.AddMap(Prev: Integer; Map: TCMap);
-var
-  NeedAdd: Boolean;
-  fl: Boolean;
-  q: Integer;
-  i: Integer;
-  j: Integer;
-begin
-  NeedAdd := true;
-
-  for q := 1 to count do
-  begin
-    fl := True;
-    for i := 1 to Self.p[q].Map.mapH do
-      for j := 1 to Self.p[q].Map.mapW do
-        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
-          fl := False;
-    if fl then
-      NeedAdd := False;
-  end;
-
-  if NeedAdd then
-  begin
-    Self.Count := Self.Count + 1;
-    SetLength(self.p, count + 1);
-
-    Self.p[count].PrevInd := Prev;
-    Self.p[count].Map := Map;
-  end;
 end;
 
 end.

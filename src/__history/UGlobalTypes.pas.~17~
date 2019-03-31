@@ -35,11 +35,14 @@ begin
   Read(f, Self.mapH);
   SetLength(self.map, Self.mapH + 2);
   Readln(f, Self.mapW);
-  for I := 1 to Self.mapH do
+  for I := 0 to Self.mapH + 1 do
     SetLength(Self.map[I], Self.mapW + 2);
-  for I := 1 to Self.mapH do
-    for j := 1 to Self.mapW do
-      self.map[I, j] := [ctEmpty];
+  for I := 0 to Self.mapH + 1 do
+    for j := 0 to Self.mapW + 1 do
+      if (I < 1) or (I > mapH) or (j < 1) or (j > mapW) then
+        self.map[I, j] := [ctWall]
+      else
+        self.map[I, j] := [ctEmpty];
   while not Eof(f) do
   begin
     read(f, I);
