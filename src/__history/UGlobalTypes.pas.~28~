@@ -269,7 +269,7 @@ begin
   while p <= Self.Count do
   begin
     if Self.p[p].Map.isEnd then
-     break;
+      p := 1;
     m := Self.p[p].Map.GenerateMoves;
     for mInd := 1 to Length(m) - 1 do
       self.AddMap(p, Self.p[p].Map.MakeMove(m[mInd]));

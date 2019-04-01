@@ -268,8 +268,6 @@ begin
   p := 1;
   while p <= Self.Count do
   begin
-    if Self.p[p].Map.isEnd then
-     break;
     m := Self.p[p].Map.GenerateMoves;
     for mInd := 1 to Length(m) - 1 do
       self.AddMap(p, Self.p[p].Map.MakeMove(m[mInd]));
@@ -288,12 +286,12 @@ begin
   for i := 1 to self.mapH do
     for j := 1 to Self.mapW do
     begin
-      if (ctHome in self.map[i, j]) then
-        if not (ctAinable in Self.map[i, j]) then
+      if [ctHome] in self.map[i, j] then
+        if not ([ctAinable] in Self.map[i, j]) then
           fl := false;
 
-      if ctBoxPlace in self.map[i, j] then
-        if not (ctBox in Self.map[i, j]) then
+      if [ctBoxPlace] in self.map[i, j] then
+        if not ([ctBox] in Self.map[i, j]) then
           fl := false;
     end;
 

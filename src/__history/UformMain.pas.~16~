@@ -32,10 +32,9 @@ var
   map: UGlobalTypes.TCMap;
   l: TCList;
   i: Integer;
-  k: integer;
 begin
   map := TCMap.Create;
-  map.LoadMapFromFile('map1.txt');
+  map.LoadMapFromFile('map_test.txt');
   img1.Picture.Assign(map.DrawMap);
   l := TCList.Create;
   l.AddMap(0, map);
@@ -43,23 +42,18 @@ begin
   for i := 1 to l.Count do
     if l.p[i].map.isEnd then
       Break;
+  ShowMessage(IntToStr(i));
   while l.p[i].PrevInd <> 0 do
   begin
     mmo1.LineS.add(IntToStr(i));
     i := l.p[i].PrevInd;
   end;
-  k := 0;
-  img1.Picture.Assign(l.p[1].map.DrawMap);
-  img1.Picture.SaveToFile(IntToStr(k) + '.jpg');
-  for i := mmo1.Lines.Count - 1 downto 0 do
-  begin
-    k := k + 1;
-    Form1.Repaint;
-    Sleep(3000);
-    Application.ProcessMessages;
-    img1.Picture.Assign(l.p[strtoint(mmo1.Lines[i])].map.DrawMap);
-    img1.Picture.SaveToFile(IntToStr(k) + '.jpg');
-  end;
+  img1.Picture.Assign(l.p[0].map.DrawMap);
+  for i := mmo1.Lines.Count - 1 to 0 do
+   begin
+     Sleep(1000);
+     img1.Picture.Assign(l.p[strtoint(mmo1.Lines[i])].map.DrawMap);
+   end;
 
 end;
 

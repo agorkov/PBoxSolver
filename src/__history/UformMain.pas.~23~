@@ -35,7 +35,7 @@ var
   k: integer;
 begin
   map := TCMap.Create;
-  map.LoadMapFromFile('map1.txt');
+  map.LoadMapFromFile('map.txt');
   img1.Picture.Assign(map.DrawMap);
   l := TCList.Create;
   l.AddMap(0, map);
@@ -55,8 +55,7 @@ begin
   begin
     k := k + 1;
     Form1.Repaint;
-    Sleep(3000);
-    Application.ProcessMessages;
+    Sleep(5000);
     img1.Picture.Assign(l.p[strtoint(mmo1.Lines[i])].map.DrawMap);
     img1.Picture.SaveToFile(IntToStr(k) + '.jpg');
   end;

@@ -10,6 +10,7 @@ type
   TForm1 = class(TForm)
     btnLoadMap: TButton;
     img1: TImage;
+    mmo1: TMemo;
     procedure btnLoadMapClick(Sender: TObject);
   private
     { Private declarations }
@@ -29,10 +30,31 @@ uses
 procedure TForm1.btnLoadMapClick(Sender: TObject);
 var
   map: UGlobalTypes.TCMap;
+  l: TCList;
+  i: Integer;
 begin
   map := TCMap.Create;
   map.LoadMapFromFile('map_test.txt');
   img1.Picture.Assign(map.DrawMap);
+  l := TCList.Create;
+  l.AddMap(0, map);
+  l.Solve;
+  for i := 1 to l.Count do
+    if l.p[i].map.isEnd then
+      Break;
+  while l.p[i].PrevInd <> 0 do
+  begin
+    mmo1.LineS.add(IntToStr(i));
+    i := l.p[i].PrevInd;
+  end;
+  img1.Picture.Assign(l.p[1].map.DrawMap);
+  for i := mmo1.Lines.Count - 1 downto 0 do
+  begin
+    Form1.Repaint;
+    Sleep(1000);
+    img1.Picture.Assign(l.p[strtoint(mmo1.Lines[i])].map.DrawMap);
+  end;
+
 end;
 
 end.

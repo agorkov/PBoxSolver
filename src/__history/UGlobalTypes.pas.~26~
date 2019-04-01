@@ -8,6 +8,12 @@ uses
 type
   TECellType = (ctWall, ctEmpty, ctAinable, ctBox, ctBoxPlace, ctHome);
 
+  TRMove = record
+    FromI, FormJ, ToI, ToJ: integer;
+  end;
+
+  TAMoveList = array of TRMove;
+
   TCMap = class
   private
     mapH, mapW: integer;
@@ -16,6 +22,20 @@ type
     procedure LoadMapFromFile(FileName: string);
     procedure CalculateMap;
     function DrawMap: TBitmap;
+    function GenerateMoves: TAMoveList;
+    function MakeMove(Move: TRMove): TCMap;
+  end;
+
+  TRPosition = record
+    PrevInd: Integer;
+    Map: TCMap;
+  end;
+
+  TCList = class
+    Count: integer;
+    p: array of TRPosition;
+  public
+    procedure AddMap(Prev: Integer; Map: TCMap);
   end;
 
 implementation
@@ -64,6 +84,7 @@ begin
   end;
   CloseFile(f);
   Self.CalculateMap;
+  Self.GenerateMoves;
 end;
 
 procedure TCMap.CalculateMap;
@@ -122,13 +143,118 @@ begin
         CI.Pixels[i - 1, j - 1].FullColor := clWebBrown
       else if ctBoxPlace in map[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clWebSandyBrown
-      else if ctAinable in map[i, j] then
-        CI.Pixels[i - 1, j - 1].FullColor := clGreen
       else if ctHome in map[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clRed
+      else if ctAinable in map[i, j] then
+        CI.Pixels[i - 1, j - 1].FullColor := clGreen
       else
         CI.Pixels[i - 1, j - 1].FullColor := clWhite;
   DrawMap := CI.SaveToBitMap;
+end;
+
+function TCMap.GenerateMoves;
+var
+  m: TAMoveList;
+  count: integer;
+  I: Integer;
+  j: Integer;
+begin
+  count := 0;
+  for I := 1 to mapH do
+    for j := 1 to mapW do
+      if ctBox in map[I, j] then
+      begin
+        if (ctAinable in map[I - 1, j]) and ((map[I + 1, j] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I + 1;
+          m[count].ToJ := j;
+        end;
+        if (ctAinable in map[I + 1, j]) and ((map[I - 1, j] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I - 1;
+          m[count].ToJ := j;
+        end;
+
+        if (ctAinable in map[I, j - 1]) and ((map[I, j + 1] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I;
+          m[count].ToJ := j + 1;
+        end;
+        if (ctAinable in map[I, j + 1]) and ((map[I, j - 1] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I;
+          m[count].ToJ := j - 1;
+        end;
+      end;
+  GenerateMoves := m;
+end;
+
+function TCMap.MakeMove(Move: TRMove): TCMap;
+var
+  nm: TCMap;
+  i, j: Integer;
+begin
+  nm := TCMap.Create;
+  nm.mapH := Self.mapH;
+  SetLength(nm.map, nm.mapH + 2);
+  nm.mapW := Self.mapW;
+  for i := 0 to nm.mapH + 1 do
+    SetLength(nm.map[i], nm.mapW + 2);
+  for i := 0 to nm.mapH + 1 do
+    for j := 0 to nm.mapW + 1 do
+      nm.map[i, j] := self.map[i, j] - [ctAinable];
+  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] - [ctBox];
+  nm.map[Move.ToI, Move.ToJ] := nm.map[Move.ToI, Move.ToJ] + [ctBox];
+  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] + [ctAinable];
+  nm.CalculateMap;
+  MakeMove := nm;
+end;
+
+procedure TCList.AddMap(Prev: Integer; Map: TCMap);
+var
+  NeedAdd: Boolean;
+  fl: Boolean;
+  q: Integer;
+  i: Integer;
+  j: Integer;
+begin
+  NeedAdd := true;
+
+  for q := 1 to count do
+  begin
+    fl := True;
+    for i := 1 to Self.p[q].Map.mapH do
+      for j := 1 to Self.p[q].Map.mapW do
+        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
+          fl := False;
+    if fl then
+      NeedAdd := False;
+  end;
+
+  if NeedAdd then
+  begin
+    Self.Count := Self.Count + 1;
+    SetLength(self.p, count + 1);
+
+    Self.p[count].PrevInd := Prev;
+    Self.p[count].Map := Map;
+  end;
 end;
 
 end.

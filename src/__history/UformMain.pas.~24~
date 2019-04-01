@@ -35,7 +35,7 @@ var
   k: integer;
 begin
   map := TCMap.Create;
-  map.LoadMapFromFile('map1.txt');
+  map.LoadMapFromFile('map.txt');
   img1.Picture.Assign(map.DrawMap);
   l := TCList.Create;
   l.AddMap(0, map);
