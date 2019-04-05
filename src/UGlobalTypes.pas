@@ -19,7 +19,7 @@ type
     FieldH, FieldW: Integer;
     Field: array of array of set of TECellType;
   public
-    procedure SetMapSize;
+    procedure SetFieldSize;
     procedure LoadMapFromFile(FileName: string);
     procedure CalculateMap;
     function DrawMap: TBitmap;
@@ -47,7 +47,7 @@ implementation
 uses
   UColorImages;
 
-procedure TCMap.SetMapSize;
+procedure TCMap.SetFieldSize;
 var
   i, j: Integer;
 begin
@@ -67,7 +67,7 @@ begin
   Reset(f);
   Read(f, Self.FieldH);
   Readln(f, Self.FieldW);
-  Self.SetMapSize();
+  Self.SetFieldSize();
   for I := 0 to Self.FieldH + 1 do
     for j := 0 to Self.FieldW + 1 do
       if (I < 1) or (I > FieldH) or (j < 1) or (j > FieldW) then
@@ -226,7 +226,7 @@ begin
   nm := TCMap.Create;
   nm.FieldH := Self.FieldH;
   nm.FieldW := Self.FieldW;
-  nm.SetMapSize;
+  nm.SetFieldSize;
   for i := 0 to nm.FieldH + 1 do
     for j := 0 to nm.FieldW + 1 do
       nm.Field[i, j] := Self.Field[i, j] - [ctAinable];

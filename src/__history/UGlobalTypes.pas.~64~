@@ -16,10 +16,10 @@ type
 
   TCMap = class
   private
-    mapH, mapW: Integer;
-    map: array of array of set of TECellType;
+    FieldH, FieldW: Integer;
+    Field: array of array of set of TECellType;
   public
-    constructor CreateSizedMap(H, W: integer);
+    procedure SetMapSize;
     procedure LoadMapFromFile(FileName: string);
     procedure CalculateMap;
     function DrawMap: TBitmap;
@@ -47,6 +47,15 @@ implementation
 uses
   UColorImages;
 
+procedure TCMap.SetMapSize;
+var
+  i, j: Integer;
+begin
+  SetLength(Self.Field, Self.FieldH + 2);
+  for i := 0 to Self.FieldH + 1 do
+    SetLength(Self.Field[i], Self.FieldW + 2);
+end;
+
 procedure TCMap.LoadMapFromFile(FileName: string);
 var
   f: TextFile;
@@ -56,17 +65,15 @@ var
 begin
   AssignFile(f, FileName);
   Reset(f);
-  Read(f, Self.mapH);
-  SetLength(Self.map, Self.mapH + 2);
-  Readln(f, Self.mapW);
-  for I := 0 to Self.mapH + 1 do
-    SetLength(Self.map[I], Self.mapW + 2);
-  for I := 0 to Self.mapH + 1 do
-    for j := 0 to Self.mapW + 1 do
-      if (I < 1) or (I > mapH) or (j < 1) or (j > mapW) then
-        Self.map[I, j] := [ctWall]
+  Read(f, Self.FieldH);
+  Readln(f, Self.FieldW);
+  Self.SetMapSize();
+  for I := 0 to Self.FieldH + 1 do
+    for j := 0 to Self.FieldW + 1 do
+      if (I < 1) or (I > FieldH) or (j < 1) or (j > FieldW) then
+        Self.Field[I, j] := [ctWall]
       else
-        Self.map[I, j] := [ctEmpty];
+        Self.Field[I, j] := [ctEmpty];
   while not Eof(f) do
   begin
     Read(f, I);
@@ -75,15 +82,15 @@ begin
     Readln(f, t);
     case t of
       'H':
-        map[I, j] := map[I, j] + [ctHome];
+        Field[I, j] := Field[I, j] + [ctHome];
       'I':
-        map[I, j] := map[I, j] + [ctAinable];
+        Field[I, j] := Field[I, j] + [ctAinable];
       'W':
-        map[I, j] := map[I, j] + [ctWall];
+        Field[I, j] := Field[I, j] + [ctWall];
       'B':
-        map[I, j] := map[I, j] + [ctBox];
+        Field[I, j] := Field[I, j] + [ctBox];
       'P':
-        map[I, j] := map[I, j] + [ctBoxPlace];
+        Field[I, j] := Field[I, j] + [ctBoxPlace];
     end;
   end;
   CloseFile(f);
@@ -104,28 +111,28 @@ begin
   while fl do
   begin
     fl := False;
-    for i := 1 to mapH do
-      for j := 1 to mapW do
-        if ctAinable in map[i, j] then
+    for i := 1 to FieldH do
+      for j := 1 to FieldW do
+        if ctAinable in Field[i, j] then
         begin
-          if t * map[i - 1, j] = [] then
+          if t * Field[i - 1, j] = [] then
           begin
-            map[i - 1, j] := map[i - 1, j] + [ctAinable];
+            Field[i - 1, j] := Field[i - 1, j] + [ctAinable];
             fl := True;
           end;
-          if t * map[i + 1, j] = [] then
+          if t * Field[i + 1, j] = [] then
           begin
-            map[i + 1, j] := map[i + 1, j] + [ctAinable];
+            Field[i + 1, j] := Field[i + 1, j] + [ctAinable];
             fl := True;
           end;
-          if t * map[i, j - 1] = [] then
+          if t * Field[i, j - 1] = [] then
           begin
-            map[i, j - 1] := map[i, j - 1] + [ctAinable];
+            Field[i, j - 1] := Field[i, j - 1] + [ctAinable];
             fl := True;
           end;
-          if t * map[i, j + 1] = [] then
+          if t * Field[i, j + 1] = [] then
           begin
-            map[i, j + 1] := map[i, j + 1] + [ctAinable];
+            Field[i, j + 1] := Field[i, j + 1] + [ctAinable];
             fl := True;
           end;
         end;
@@ -139,19 +146,19 @@ var
   j: Integer;
 begin
   CI := TCColorImage.Create;
-  CI.Height := mapH;
-  CI.Width := mapW;
-  for i := 1 to mapH do
-    for j := 1 to mapW do
-      if ctWall in map[i, j] then
+  CI.Height := FieldH;
+  CI.Width := FieldW;
+  for i := 1 to FieldH do
+    for j := 1 to FieldW do
+      if ctWall in Field[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clBlack
-      else if ctBox in map[i, j] then
+      else if ctBox in Field[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clWebBrown
-      else if ctBoxPlace in map[i, j] then
+      else if ctBoxPlace in Field[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clWebSandyBrown
-      else if ctHome in map[i, j] then
+      else if ctHome in Field[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clRed
-      else if ctAinable in map[i, j] then
+      else if ctAinable in Field[i, j] then
         CI.Pixels[i - 1, j - 1].FullColor := clGreen
       else
         CI.Pixels[i - 1, j - 1].FullColor := clWhite;
@@ -166,11 +173,11 @@ var
   j: Integer;
 begin
   count := 0;
-  for I := 1 to mapH do
-    for j := 1 to mapW do
-      if ctBox in map[I, j] then
+  for I := 1 to FieldH do
+    for j := 1 to FieldW do
+      if ctBox in Field[I, j] then
       begin
-        if (ctAinable in map[I - 1, j]) and ((map[I + 1, j] * [ctBox, ctWall, ctHome]) = []) then
+        if (ctAinable in Field[I - 1, j]) and ((Field[I + 1, j] * [ctBox, ctWall, ctHome]) = []) then
         begin
           count := count + 1;
           SetLength(m, count + 1);
@@ -179,7 +186,7 @@ begin
           m[count].ToI := I + 1;
           m[count].ToJ := j;
         end;
-        if (ctAinable in map[I + 1, j]) and ((map[I - 1, j] * [ctBox, ctWall, ctHome]) = []) then
+        if (ctAinable in Field[I + 1, j]) and ((Field[I - 1, j] * [ctBox, ctWall, ctHome]) = []) then
         begin
           count := count + 1;
           SetLength(m, count + 1);
@@ -189,7 +196,7 @@ begin
           m[count].ToJ := j;
         end;
 
-        if (ctAinable in map[I, j - 1]) and ((map[I, j + 1] * [ctBox, ctWall, ctHome]) = []) then
+        if (ctAinable in Field[I, j - 1]) and ((Field[I, j + 1] * [ctBox, ctWall, ctHome]) = []) then
         begin
           count := count + 1;
           SetLength(m, count + 1);
@@ -198,7 +205,7 @@ begin
           m[count].ToI := I;
           m[count].ToJ := j + 1;
         end;
-        if (ctAinable in map[I, j + 1]) and ((map[I, j - 1] * [ctBox, ctWall, ctHome]) = []) then
+        if (ctAinable in Field[I, j + 1]) and ((Field[I, j - 1] * [ctBox, ctWall, ctHome]) = []) then
         begin
           count := count + 1;
           SetLength(m, count + 1);
@@ -217,35 +224,33 @@ var
   i, j: Integer;
 begin
   nm := TCMap.Create;
-  nm.mapH := Self.mapH;
-  SetLength(nm.map, nm.mapH + 2);
-  nm.mapW := Self.mapW;
-  for i := 0 to nm.mapH + 1 do
-    SetLength(nm.map[i], nm.mapW + 2);
-  for i := 0 to nm.mapH + 1 do
-    for j := 0 to nm.mapW + 1 do
-      nm.map[i, j] := Self.map[i, j] - [ctAinable];
+  nm.FieldH := Self.FieldH;
+  nm.FieldW := Self.FieldW;
+  nm.SetMapSize;
+  for i := 0 to nm.FieldH + 1 do
+    for j := 0 to nm.FieldW + 1 do
+      nm.Field[i, j] := Self.Field[i, j] - [ctAinable];
 
-  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] - [ctBox];
-  nm.map[Move.ToI, Move.ToJ] := nm.map[Move.ToI, Move.ToJ] + [ctBox];
-  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] + [ctAinable];
+  nm.Field[Move.FromI, Move.FormJ] := nm.Field[Move.FromI, Move.FormJ] - [ctBox];
+  nm.Field[Move.ToI, Move.ToJ] := nm.Field[Move.ToI, Move.ToJ] + [ctBox];
+  nm.Field[Move.FromI, Move.FormJ] := nm.Field[Move.FromI, Move.FormJ] + [ctAinable];
 
   nm.CalculateMap;
 
-  if [ctBoxPlace] * nm.map[Move.ToI, Move.ToJ] = [] then
+  if [ctBoxPlace] * nm.Field[Move.ToI, Move.ToJ] = [] then
     nm.isSolved := False
   else
   begin
     nm.isSolved := True;
-    for i := 1 to Self.mapH do
-      for j := 1 to Self.mapW do
+    for i := 1 to Self.FieldH do
+      for j := 1 to Self.FieldW do
       begin
-        if (ctHome in nm.map[i, j]) then
-          if not (ctAinable in nm.map[i, j]) then
+        if (ctHome in nm.Field[i, j]) then
+          if not (ctAinable in nm.Field[i, j]) then
             nm.isSolved := False;
 
-        if ctBoxPlace in nm.map[i, j] then
-          if not (ctBox in nm.map[i, j]) then
+        if ctBoxPlace in nm.Field[i, j] then
+          if not (ctBox in nm.Field[i, j]) then
             nm.isSolved := False;
       end;
   end;
@@ -266,9 +271,9 @@ begin
   for q := 1 to count do
   begin
     fl := True;
-    for i := 1 to Self.p[q].Map.mapH do
-      for j := 1 to Self.p[q].Map.mapW do
-        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
+    for i := 1 to Self.p[q].Map.FieldH do
+      for j := 1 to Self.p[q].Map.FieldW do
+        if Map.Field[i, j] <> Self.p[q].Map.Field[i, j] then
           fl := False;
     if fl then
       NeedAdd := False;
@@ -293,11 +298,11 @@ begin
   p := 1;
   while p <= Self.Count do
   begin
-    if Self.p[p].Map.isSolved then
+    if Self.p[p].map.isSolved then
       Break;
-    m := Self.p[p].Map.GenerateMoves;
+    m := Self.p[p].map.GenerateMoves;
     for mInd := 1 to Length(m) - 1 do
-      Self.AddMap(p, Self.p[p].Map.MakeMove(m[mInd]));
+      Self.AddMap(p, Self.p[p].map.MakeMove(m[mInd]));
     p := p + 1;
   end;
 
