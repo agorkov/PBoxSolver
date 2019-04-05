@@ -3,20 +3,20 @@ unit UGlobalTypes;
 interface
 
 uses
-  Vcl.Graphics;
+  Graphics;
 
 type
   TECellType = (ctWall, ctEmpty, ctAinable, ctBox, ctBoxPlace, ctHome);
 
   TRMove = record
-    FromI, FormJ, ToI, ToJ: integer;
+    FromI, FormJ, ToI, ToJ: Integer;
   end;
 
   TAMoveList = array of TRMove;
 
   TCMap = class
   private
-    mapH, mapW: integer;
+    mapH, mapW: Integer;
     map: array of array of set of TECellType;
   public
     procedure LoadMapFromFile(FileName: string);
@@ -24,18 +24,20 @@ type
     function DrawMap: TBitmap;
     function GenerateMoves: TAMoveList;
     function MakeMove(Move: TRMove): TCMap;
+    function isEnd: Boolean;
   end;
 
   TRPosition = record
     PrevInd: Integer;
-    Map: TCMap;
+    map: TCMap;
   end;
 
   TCList = class
-    Count: integer;
+    Count: Integer;
     p: array of TRPosition;
   public
-    procedure AddMap(Prev: Integer; Map: TCMap);
+    procedure AddMap(Prev: Integer; map: TCMap);
+    procedure Solve;
   end;
 
 implementation
@@ -53,21 +55,21 @@ begin
   AssignFile(f, FileName);
   Reset(f);
   Read(f, Self.mapH);
-  SetLength(self.map, Self.mapH + 2);
+  SetLength(Self.map, Self.mapH + 2);
   Readln(f, Self.mapW);
   for I := 0 to Self.mapH + 1 do
     SetLength(Self.map[I], Self.mapW + 2);
   for I := 0 to Self.mapH + 1 do
     for j := 0 to Self.mapW + 1 do
       if (I < 1) or (I > mapH) or (j < 1) or (j > mapW) then
-        self.map[I, j] := [ctWall]
+        Self.map[I, j] := [ctWall]
       else
-        self.map[I, j] := [ctEmpty];
+        Self.map[I, j] := [ctEmpty];
   while not Eof(f) do
   begin
-    read(f, I);
-    read(f, j);
-    read(f, t);
+    Read(f, I);
+    Read(f, j);
+    Read(f, t);
     Readln(f, t);
     case t of
       'H':
@@ -92,8 +94,12 @@ var
   fl: Boolean;
   i: Integer;
   j: Integer;
+  dt: TDateTime;
+  t: set of TECellType;
 begin
-  fl := true;
+  dt := Now;
+  fl := True;
+  t := [ctWall, ctBox, ctAinable];
   while fl do
   begin
     fl := False;
@@ -101,34 +107,34 @@ begin
       for j := 1 to mapW do
         if ctAinable in map[i, j] then
         begin
-          if (not (ctWall in map[i - 1, j])) and (not (ctBox in map[i - 1, j])) and (not (ctAinable in map[i - 1, j])) then
+          if t * map[i - 1, j] = [] then
           begin
             map[i - 1, j] := map[i - 1, j] + [ctAinable];
             fl := True;
           end;
-          if (not (ctWall in map[i + 1, j])) and (not (ctBox in map[i + 1, j])) and (not (ctAinable in map[i + 1, j])) then
+          if t * map[i + 1, j] = [] then
           begin
             map[i + 1, j] := map[i + 1, j] + [ctAinable];
             fl := True;
           end;
-          if (not (ctWall in map[i, j - 1])) and (not (ctBox in map[i, j - 1])) and (not (ctAinable in map[i, j - 1])) then
+          if t * map[i, j - 1] = [] then
           begin
             map[i, j - 1] := map[i, j - 1] + [ctAinable];
             fl := True;
           end;
-          if (not (ctWall in map[i, j + 1])) and (not (ctBox in map[i, j + 1])) and (not (ctAinable in map[i, j + 1])) then
+          if t * map[i, j + 1] = [] then
           begin
             map[i, j + 1] := map[i, j + 1] + [ctAinable];
             fl := True;
           end;
         end;
   end;
-
+  CalculateMapTimer := CalculateMapTimer + DateUtils.MilliSecondsBetween(Now, dt);
 end;
 
 function TCMap.DrawMap: TBitmap;
 var
-  CI: UcolorImages.TCColorImage;
+  CI: UColorImages.TCColorImage;
   i: Integer;
   j: Integer;
 begin
@@ -155,7 +161,7 @@ end;
 function TCMap.GenerateMoves;
 var
   m: TAMoveList;
-  count: integer;
+  count: Integer;
   I: Integer;
   j: Integer;
 begin
@@ -218,10 +224,84 @@ begin
     SetLength(nm.map[i], nm.mapW + 2);
   for i := 0 to nm.mapH + 1 do
     for j := 0 to nm.mapW + 1 do
-      nm.map[i, j] := self.map[i, j];
+      nm.map[i, j] := Self.map[i, j] - [ctAinable];
   nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] - [ctBox];
   nm.map[Move.ToI, Move.ToJ] := nm.map[Move.ToI, Move.ToJ] + [ctBox];
+  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] + [ctAinable];
+  nm.CalculateMap;
   MakeMove := nm;
+end;
+
+procedure TCList.AddMap(Prev: Integer; Map: TCMap);
+var
+  NeedAdd: Boolean;
+  fl: Boolean;
+  q: Integer;
+  i: Integer;
+  j: Integer;
+begin
+  NeedAdd := True;
+
+  for q := 1 to count do
+  begin
+    fl := True;
+    for i := 1 to Self.p[q].Map.mapH do
+      for j := 1 to Self.p[q].Map.mapW do
+        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
+          fl := False;
+    if fl then
+      NeedAdd := False;
+  end;
+
+  if NeedAdd then
+  begin
+    Self.Count := Self.Count + 1;
+    SetLength(Self.p, count + 1);
+
+    Self.p[count].PrevInd := Prev;
+    Self.p[count].Map := Map;
+  end;
+end;
+
+procedure TCList.Solve;
+var
+  p: Integer;
+  m: TAMoveList;
+  mInd: Integer;
+begin
+  p := 1;
+  while p <= Self.Count do
+  begin
+    if Self.p[p].Map.isEnd then
+      Break;
+    m := Self.p[p].Map.GenerateMoves;
+    for mInd := 1 to Length(m) - 1 do
+      Self.AddMap(p, Self.p[p].Map.MakeMove(m[mInd]));
+    p := p + 1;
+  end;
+
+end;
+
+function TCMap.isEnd;
+var
+  i: Integer;
+  j: Integer;
+  fl: Boolean;
+begin
+  fl := True;
+  for i := 1 to Self.mapH do
+    for j := 1 to Self.mapW do
+    begin
+      if (ctHome in Self.map[i, j]) then
+        if not (ctAinable in Self.map[i, j]) then
+          fl := False;
+
+      if ctBoxPlace in Self.map[i, j] then
+        if not (ctBox in Self.map[i, j]) then
+          fl := False;
+    end;
+
+  isEnd := fl;
 end;
 
 end.

@@ -115,18 +115,19 @@ begin
             map[i + 1, j] := map[i + 1, j] + [ctAinable];
             fl := True;
           end;
-          if t * map[i, j - 1] = [] then
+          if (not (ctWall in map[i, j - 1])) and (not (ctBox in map[i, j - 1])) and (not (ctAinable in map[i, j - 1])) then
           begin
             map[i, j - 1] := map[i, j - 1] + [ctAinable];
             fl := True;
           end;
-          if t * map[i, j + 1] = [] then
+          if (not (ctWall in map[i, j + 1])) and (not (ctBox in map[i, j + 1])) and (not (ctAinable in map[i, j + 1])) then
           begin
             map[i, j + 1] := map[i, j + 1] + [ctAinable];
             fl := True;
           end;
         end;
   end;
+
 end;
 
 function TCMap.DrawMap: TBitmap;

@@ -3,20 +3,20 @@ unit UGlobalTypes;
 interface
 
 uses
-  Vcl.Graphics;
+  Graphics;
 
 type
   TECellType = (ctWall, ctEmpty, ctAinable, ctBox, ctBoxPlace, ctHome);
 
   TRMove = record
-    FromI, FormJ, ToI, ToJ: integer;
+    FromI, FormJ, ToI, ToJ: Integer;
   end;
 
   TAMoveList = array of TRMove;
 
   TCMap = class
   private
-    mapH, mapW: integer;
+    mapH, mapW: Integer;
     map: array of array of set of TECellType;
   public
     procedure LoadMapFromFile(FileName: string);
@@ -33,12 +33,15 @@ type
   end;
 
   TCList = class
-    Count: integer;
+    Count: Integer;
     p: array of TRPosition;
   public
     procedure AddMap(Prev: Integer; Map: TCMap);
     procedure Solve;
   end;
+
+var
+  CalculateMapTimer: Int64;
 
 implementation
 
@@ -94,8 +97,10 @@ var
   fl: Boolean;
   i: Integer;
   j: Integer;
+  dt: TDateTime;
 begin
-  fl := true;
+  dt := Now;
+  fl := True;
   while fl do
   begin
     fl := False;
@@ -125,12 +130,12 @@ begin
           end;
         end;
   end;
-
+  CalculateMapTimer := CalculateMapTimer + 1;
 end;
 
 function TCMap.DrawMap: TBitmap;
 var
-  CI: UcolorImages.TCColorImage;
+  CI: UColorImages.TCColorImage;
   i: Integer;
   j: Integer;
 begin
@@ -157,7 +162,7 @@ end;
 function TCMap.GenerateMoves;
 var
   m: TAMoveList;
-  count: integer;
+  count: Integer;
   I: Integer;
   j: Integer;
 begin
@@ -236,7 +241,7 @@ var
   i: Integer;
   j: Integer;
 begin
-  NeedAdd := true;
+  NeedAdd := True;
 
   for q := 1 to count do
   begin
@@ -261,7 +266,7 @@ end;
 
 procedure TCList.Solve;
 var
-  p: integer;
+  p: Integer;
   m: TAMoveList;
   mInd: Integer;
 begin
@@ -269,7 +274,7 @@ begin
   while p <= Self.Count do
   begin
     if Self.p[p].Map.isEnd then
-      p := 1;
+      break;
     m := Self.p[p].Map.GenerateMoves;
     for mInd := 1 to Length(m) - 1 do
       self.AddMap(p, Self.p[p].Map.MakeMove(m[mInd]));
@@ -284,21 +289,56 @@ var
   j: Integer;
   fl: Boolean;
 begin
-  fl := true;
+  fl := True;
   for i := 1 to self.mapH do
     for j := 1 to Self.mapW do
     begin
       if (ctHome in self.map[i, j]) then
         if not (ctAinable in Self.map[i, j]) then
-          fl := false;
+          fl := False;
 
       if ctBoxPlace in self.map[i, j] then
         if not (ctBox in Self.map[i, j]) then
-          fl := false;
+          fl := False;
     end;
 
   isEnd := fl;
 end;
 
 end.
+
+
+{
+  fl := True;
+  t := [ctWall, ctBox, ctAinable];
+  while fl do
+  begin
+    fl := False;
+    for i := 1 to mapH do
+      for j := 1 to mapW do
+        if ctAinable in map[i, j] then
+        begin
+          if t * map[i - 1, j] = [] then
+          begin
+            map[i - 1, j] := map[i - 1, j] + [ctAinable];
+            fl := True;
+          end;
+          if t * map[i + 1, j] = [] then
+          begin
+            map[i + 1, j] := map[i + 1, j] + [ctAinable];
+            fl := True;
+          end;
+          if t * map[i, j - 1] = [] then
+          begin
+            map[i, j - 1] := map[i, j - 1] + [ctAinable];
+            fl := True;
+          end;
+          if t * map[i, j + 1] = [] then
+          begin
+            map[i, j + 1] := map[i, j + 1] + [ctAinable];
+            fl := True;
+          end;
+        end;
+  end;
+}
 

@@ -3,7 +3,7 @@ unit UGlobalTypes;
 interface
 
 uses
-  Vcl.Graphics;
+  Graphics;
 
 type
   TECellType = (ctWall, ctEmpty, ctAinable, ctBox, ctBoxPlace, ctHome);
@@ -23,6 +23,21 @@ type
     procedure CalculateMap;
     function DrawMap: TBitmap;
     function GenerateMoves: TAMoveList;
+    function MakeMove(Move: TRMove): TCMap;
+    function isEnd: Boolean;
+  end;
+
+  TRPosition = record
+    PrevInd: Integer;
+    Map: TCMap;
+  end;
+
+  TCList = class
+    Count: integer;
+    p: array of TRPosition;
+  public
+    procedure AddMap(Prev: Integer; Map: TCMap);
+    procedure Solve;
   end;
 
 implementation
@@ -160,9 +175,164 @@ begin
           m[count].ToI := I + 1;
           m[count].ToJ := j;
         end;
+        if (ctAinable in map[I + 1, j]) and ((map[I - 1, j] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I - 1;
+          m[count].ToJ := j;
+        end;
+
+        if (ctAinable in map[I, j - 1]) and ((map[I, j + 1] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I;
+          m[count].ToJ := j + 1;
+        end;
+        if (ctAinable in map[I, j + 1]) and ((map[I, j - 1] * [ctBox, ctWall, ctHome]) = []) then
+        begin
+          count := count + 1;
+          SetLength(m, count + 1);
+          m[count].FromI := I;
+          m[count].FormJ := j;
+          m[count].ToI := I;
+          m[count].ToJ := j - 1;
+        end;
       end;
   GenerateMoves := m;
 end;
 
+function TCMap.MakeMove(Move: TRMove): TCMap;
+var
+  nm: TCMap;
+  i, j: Integer;
+begin
+  nm := TCMap.Create;
+  nm.mapH := Self.mapH;
+  SetLength(nm.map, nm.mapH + 2);
+  nm.mapW := Self.mapW;
+  for i := 0 to nm.mapH + 1 do
+    SetLength(nm.map[i], nm.mapW + 2);
+  for i := 0 to nm.mapH + 1 do
+    for j := 0 to nm.mapW + 1 do
+      nm.map[i, j] := self.map[i, j] - [ctAinable];
+  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] - [ctBox];
+  nm.map[Move.ToI, Move.ToJ] := nm.map[Move.ToI, Move.ToJ] + [ctBox];
+  nm.map[Move.FromI, Move.FormJ] := nm.map[Move.FromI, Move.FormJ] + [ctAinable];
+  nm.CalculateMap;
+  MakeMove := nm;
+end;
+
+procedure TCList.AddMap(Prev: Integer; Map: TCMap);
+var
+  NeedAdd: Boolean;
+  fl: Boolean;
+  q: Integer;
+  i: Integer;
+  j: Integer;
+begin
+  NeedAdd := true;
+
+  for q := 1 to count do
+  begin
+    fl := True;
+    for i := 1 to Self.p[q].Map.mapH do
+      for j := 1 to Self.p[q].Map.mapW do
+        if Map.map[i, j] <> Self.p[q].Map.map[i, j] then
+          fl := False;
+    if fl then
+      NeedAdd := False;
+  end;
+
+  if NeedAdd then
+  begin
+    Self.Count := Self.Count + 1;
+    SetLength(self.p, count + 1);
+
+    Self.p[count].PrevInd := Prev;
+    Self.p[count].Map := Map;
+  end;
+end;
+
+procedure TCList.Solve;
+var
+  p: integer;
+  m: TAMoveList;
+  mInd: Integer;
+begin
+  p := 1;
+  while p <= Self.Count do
+  begin
+    if Self.p[p].Map.isEnd then
+     break;
+    m := Self.p[p].Map.GenerateMoves;
+    for mInd := 1 to Length(m) - 1 do
+      self.AddMap(p, Self.p[p].Map.MakeMove(m[mInd]));
+    p := p + 1;
+  end;
+
+end;
+
+function TCMap.isEnd;
+var
+  i: Integer;
+  j: Integer;
+  fl: Boolean;
+begin
+  fl := true;
+  for i := 1 to self.mapH do
+    for j := 1 to Self.mapW do
+    begin
+      if (ctHome in self.map[i, j]) then
+        if not (ctAinable in Self.map[i, j]) then
+          fl := false;
+
+      if ctBoxPlace in self.map[i, j] then
+        if not (ctBox in Self.map[i, j]) then
+          fl := false;
+    end;
+
+  isEnd := fl;
+end;
+
 end.
 
+
+{
+  fl := True;
+  t := [ctWall, ctBox, ctAinable];
+  while fl do
+  begin
+    fl := False;
+    for i := 1 to mapH do
+      for j := 1 to mapW do
+        if ctAinable in map[i, j] then
+        begin
+          if t * map[i - 1, j] = [] then
+          begin
+            map[i - 1, j] := map[i - 1, j] + [ctAinable];
+            fl := True;
+          end;
+          if t * map[i + 1, j] = [] then
+          begin
+            map[i + 1, j] := map[i + 1, j] + [ctAinable];
+            fl := True;
+          end;
+          if t * map[i, j - 1] = [] then
+          begin
+            map[i, j - 1] := map[i, j - 1] + [ctAinable];
+            fl := True;
+          end;
+          if t * map[i, j + 1] = [] then
+          begin
+            map[i, j + 1] := map[i, j + 1] + [ctAinable];
+            fl := True;
+          end;
+        end;
+  end;
+}

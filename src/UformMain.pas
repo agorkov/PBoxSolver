@@ -3,8 +3,17 @@ unit UformMain;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -43,6 +52,7 @@ begin
   for i := 1 to l.Count do
     if l.p[i].map.isEnd then
       Break;
+
   while l.p[i].PrevInd <> 0 do
   begin
     mmo1.LineS.add(IntToStr(i));
