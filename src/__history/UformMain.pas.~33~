@@ -3,8 +3,17 @@ unit UformMain;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls;
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -35,14 +44,15 @@ var
   k: integer;
 begin
   map := TCMap.Create;
-  map.LoadMapFromFile('map.txt');
+  map.LoadMapFromFile('map1.txt');
   img1.Picture.Assign(map.DrawMap);
   l := TCList.Create;
   l.AddMap(0, map);
   l.Solve;
   for i := 1 to l.Count do
-    if l.p[i].map.isEnd then
+    if l.p[i].map.isSolved then
       Break;
+
   while l.p[i].PrevInd <> 0 do
   begin
     mmo1.LineS.add(IntToStr(i));
@@ -55,7 +65,8 @@ begin
   begin
     k := k + 1;
     Form1.Repaint;
-    Sleep(5000);
+    Sleep(3000);
+    Application.ProcessMessages;
     img1.Picture.Assign(l.p[strtoint(mmo1.Lines[i])].map.DrawMap);
     img1.Picture.SaveToFile(IntToStr(k) + '.jpg');
   end;

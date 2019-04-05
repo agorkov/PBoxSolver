@@ -41,7 +41,7 @@ var
   map: UGlobalTypes.TCMap;
   l: TCList;
   i: Integer;
-  k: integer;
+  k: Integer;
 begin
   map := TCMap.Create;
   map.LoadMapFromFile('map1.txt');
@@ -50,7 +50,7 @@ begin
   l.AddMap(0, map);
   l.Solve;
   for i := 1 to l.Count do
-    if l.p[i].map.isEnd then
+    if l.p[i].map.isSolved then
       Break;
 
   while l.p[i].PrevInd <> 0 do
@@ -65,9 +65,9 @@ begin
   begin
     k := k + 1;
     Form1.Repaint;
-    Sleep(3000);
+    Sleep(500);
     Application.ProcessMessages;
-    img1.Picture.Assign(l.p[strtoint(mmo1.Lines[i])].map.DrawMap);
+    img1.Picture.Assign(l.p[StrToInt(mmo1.Lines[i])].map.DrawMap);
     img1.Picture.SaveToFile(IntToStr(k) + '.jpg');
   end;
 
